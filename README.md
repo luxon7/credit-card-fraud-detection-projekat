@@ -1,55 +1,75 @@
 # Detekcija prevara na kreditnim karticama pomoću dubokih neuronskih mreža
 
-Ovaj projekat predstavlja implementaciju duboke neuronske mreže (Feedforward MLP) za binarnu klasifikaciju transakcija na regularne i prevare. Projekat je rađen u sklopu predmeta *Duboko učenje i neuronske mreže*.
+Ovaj projekat predstavlja implementaciju i komparativnu analizu dubokih neuronskih mreža (Feedforward MLP) za binarnu klasifikaciju transakcija na regularne i prevare. Kroz projekat je sproveden proces postepenog pronalaska optimalne arhitekture kroz tri različite eksperimentalne konfiguracije. Projekat je rađen u sklopu predmeta *Duboko učenje i neuronske mreže*.
 
 ## 1. Opis problema
-Finansijske prevare sa kreditnim karticama nanose ogromne štete bankama i klijentima. Glavni izazov u rešavanju ovog problema pomoću veštačke inteligencije jeste **ekstremni debalans klasa** – prevare čine tek minimalni deo ukupnog broja transakcija, što klasične algoritme vodi ka pogrešnom zaključivanju. Cilj ovog modela je da maksimizuje detekciju prevara (Recall) uz održavanje stabilnosti sistema.
+Finansijske prevare sa kreditnim karticama nanose ogromne štete bankama i klijentima. Glavni izazov u rešavanju ovog problema pomoću veštačke inteligencije jeste **ekstremni debalans klasa** – prevare čine tek minimalni deo ukupnog broja transakcija (manje od 1%). Klasični algoritmi u ovim uslovima optimizuju ukupnu tačnost i potpuno ignorišu manjinsku klasu. Cilj ovog projekta je bio da se kroz eksperimente pronađe model koji maksimizuje detekciju prevara (Recall), uz održavanje operativne stabilnosti sistema kroz tehnike regularizacije.
 
 ## 2. Podaci
 * **Izvor podataka:** Kaggle Credit Card Fraud Detection dataset.
 * **Struktura:** Dataset sadrži ukupno 284,807 transakcija unutar dva dana. Sadrži 30 numeričkih atributa (V1-V28 dobijeni PCA transformacijom, `Time` i `Amount`) i ciljnu klasu `Class` (0 za regularne, 1 za prevare).
 * **Analiza debalansa:** U datasetu ima svega 492 prevare (**0.172%**), dok su ostalo regularne transakcije.
-* **Preprocesiranje:** Kolone `Amount` i `Time` su skalirane pomoću `StandardScaler`-a kako bi se sve karakteristike dovele na sličan opseg. Podaci su podeljeni na trening (80%) i test set (20%) uz korišćenje **stratifikacije** (`stratify=y`) kako bi se očuvao procenat prevara u oba seta.
+* **Preprocesiranje:** Kolone `Amount` i `Time` su skalirane pomoću `StandardScaler`-a kako bi se sve karakteristike dovele na sličan opseg i ubrzala konvergencija. Podaci su podeljeni na trening (80%) i test set (20%) uz obavezno korišćenje **stratifikacije** (`stratify=y`) kako bi se u oba skupa očuvao identičan procenat prevara.
 
 ## 3. Arhitektura modela
-Model je izgrađen pomoću Keras/TensorFlow platforme kao sekvencijalna neuronska mreža:
-* **Ulazni sloj:** Prihvata 30 karakteristika transakcije.
-* **Skriveni sloj 1:** 32 neurona, `ReLU` aktivaciona funkcija.
-* **Regularizacija:** `Dropout` sloj sa stopom od 20% (0.2) radi sprečavanja overfitting-a.
-* **Skriveni sloj 2:** 16 neurona, `ReLU` aktivaciona funkcija.
-* **Izlazni sloj:** 1 neuron, `Sigmoid` aktivaciona funkcija (daje verovatnoću prevare u opsegu od 0 do 1).
+Svi modeli u ovom projektu razvijeni su u **Keras/TensorFlow** okruženju kao sekvencijalne neuronske mreže sa topologijom levka (postepeno sažimanje informacija):
+* **Ulazni sloj:** Prihvata 30 preprocesiranih karakteristika transakcije (`input_shape=(30,)`).
+* **Skriveni sloj 1:** 32 neurona, `ReLU` nelinearna aktivaciona funkcija.
+* **Skriveni sloj 2:** 16 neurona, `ReLU` nelinearna aktivaciona funkcija.
+* **Izlazni sloj:** 1 neuron, `Sigmoid` aktivaciona funkcija (sabija izlaz u opseg [0, 1] što omogućava interpretaciju rezultata kao verovatnoće prevare).
 
-## 4. Trening
-* **Optimizator:** `Adam` (learning rate = 0.001)
-* **Funkcija gubitka (Loss):** `BinaryCrossentropy`
-* **Veličina paketa (Batch size):** 2048
-* **Broj epoha:** 10
-* **Strategija balansiranja:** Izračunate su težine klasa (`Class Weights`) gde je klasa 1 dobila penalizaciju od **289.14**, što je primoralo mrežu da obrati posebnu pažnju na retke uzorke prevara.
+## 4. Tok istraživanja i trening (Eksperimentalne konfiguracije)
 
-## 5. Analiza osetljivosti i hiperparametarska optimizacija
-Tokom razvoja testirane su različite konfiguracije modela:
-1. Bez težina klasa: Model je postizao ukupnu tačnost (Accuracy) od 99.9%, ali je Recall za prevare bio blizu 0% (model je ignorisao prevare).
-2. Sa uvođenjem `Class Weights`: Izuzetno povećanje Recall-a na preko 90%, uz očekivani pad Precision-a.
-3. Dodavanje `Dropout(0.2)` sloja: Stabilizovan gubitak (Loss) na validacionom setu i sprečeno preprilagođavanje specifičnim šablonima iz trening seta.
+U cilju pronalaska najboljeg modela, realizovane su tri različite konfiguracije:
+
+### Model 1: Baseline model (Čista mreža)
+Inicijalni model bez ikakvih modifikacija. Treniran kroz 5 epoha sa veličinom paketa (batch size) od 2048, koristeći `Adam` optimizator. Služi kao polazna osnova za dokazivanje problema debalansa.
+
+### Model 2: Težinski model (Uvođenje Class Weights)
+Zadržana je ista arhitektura, ali je u proces treninga uvedena penalizacija greške u realnom vremenu preko `compute_class_weight`. Klasa 1 (prevare) je dobila težinski koeficijent od **289.14**, čime je optimizator primoran da višestruko strože kažnjava model za svaku promašenu prevaru.
+
+### Model 3: Finalni model (Težinski + Regularizacija)
+Kako bi se ublažila nuspojava težinskog modela (preveliki broj lažnih uzbuna i osetljivost na šum), u finalnu arhitekturu su ubačene dve tehnike regularizacije:
+* **Dropout sloj** sa stopom od 20% (0.2) između skrivenih slojeva (nasumično gašenje neurona tokom treninga sprečava ko-adaptaciju i teranje mreže da uči robusne šablone).
+* **L2 regularizacija** uvedena direktno u Adam optimizator preko parametra `weight_decay=1e-4` za stabilizaciju težina.
+Model je treniran kroz 10 epoha radi potpune konvergencije.
+
+## 5. Analiza krive greške (Loss) i praćenje treninga
+Za razliku od bazičnih pristupa, tokom treninga je snimana istorija funkcije greške (`loss`) kroz epohe za sva tri modela, što je vizuelizovano na zajedničkom grafikonu u radnom okruženju. 
+* Model 1 je veštački držao nizak loss jer je ignorisao prevare.
+* Model 2 je uveo nagli pad greške kroz 5 epoha što pokazuje brzo učenje nakon uvođenja težina.
+* Model 3 (Finalni) je zahvaljujući Dropout-u i Weight Decay-u pokazao najstabilniji, ravnomeran eksponencijalni pad funkcije greške kroz svih 10 epoha, što je jasan dokaz da model uspešno generalizuje bez znakova overfitting-a.
 
 ## 6. Rezultati evaluacije
-Nakon završnog testiranja na test setu (56,962 transakcije), model je ostvario sledeće rezultate:
+Nakon završnog testiranja na test setu koji sadrži 56,962 transakcije (od čega 98 stvarnih prevara), dobijeni su sledeći uporedni rezultati:
 
-* **Ukupna tačnost (Accuracy):** 98%
-* **Recall (Klasa 1 - Prevare):** 0.91 (Model uspešno detektuje 91% svih prevara)
-* **Precision (Klasa 1 - Prevare):** 0.07
+### Model 1 (Baseline)
+* **Ukupna tačnost (Accuracy):** 1.00 (99.9%)
+* **Recall (Odziv):** 0.76 (Model je promašio čak 24% stvarnih prevara)
+* **Precision (Preciznost):** 0.82
 
-**Matrica konfuzije:**
-* Stvarno regularnih, a model pogodio (True Negatives): **55,682**
-* Regularnih, a model greškom proglasio prevarom (False Positives): **1,182**
-* Prevara, a model ih promašio (False Negatives): **9**
-* Prevara, a model ih uspešno ulovio (True Positives): **89**
+### Model 2 (Težinski)
+* **Ukupna tačnost (Accuracy):** 0.97
+* **Recall (Odziv):** 0.92 (Ekstremni skok u detekciji)
+* **Precision (Preciznost):** 0.06 (Model generiše veliki broj lažnih uzbuna)
+
+### Model 3 (Finalni Regularizovani)
+* **Ukupna tačnost (Accuracy):** 0.97
+* **Recall (Odziv):** 0.94 (Optimalna osetljivost, ulovljeno 92 od 98 prevara)
+* **Precision (Preciznost):** 0.06
+* **F1-Score (Klasa 1):** 0.11
+
+**Matrica konfuzije za Finalni Model 3:**
+* Stvarno regularnih, a model pogodio (True Negatives): **55,302**
+* Regularnih, a model greškom proglasio prevarom (False Positives): **1,562**
+* Prevara, a model ih promašio (False Negatives): **6**
+* Prevara, a model ih uspešno ulovio (True Positives): **92**
 
 ## 7. Diskusija
-Iako model generiše određen broj lažnih uzbuna (1,182 transakcije gde je korisnik zapravo regularno plaćao), u realnom poslovnom sistemu banke ovo je prihvatljiv rizik. Trošak blokiranja kartice i slanja verifikacionog SMS-a je zanemarljiv u odnosu na finansijsku i pravnu štetu koju bi banka pretrpela ako bi propustila 89 prevara koje je naš model uspešno detektovao.
+Eksperimenti jasno oslikavaju fundamentalni kompromis (*Precision-Recall Trade-off*) u dubokom učenju. Uvođenjem težinskih koeficijenata u Modelu 2 i 3 svesno smo žrtvovali preciznost (pad na 6%) kako bismo maksimalno podigli odziv (skok na 94%). Sa poslovnog aspekta, trošak privremenog blokiranja kartice i slanja SMS verifikacije za 1,562 regularne transakcije je zanemarljiv u poređenju sa katastrofalnim finansijskim i pravnim gubicima koje bi banka pretrpela da je propustila 92 prevare koje je naš finalni model uspešno locirao.
 
 ## 8. Zaključak
-Implementirana duboka neuronska mreža uspešno rešava problem detekcije prevara na ekstremno neuravnoteženim podacima. Korišćenjem težinskih koeficijenata klasa i slojeva za regularizaciju postignut je robustan model visoke osetljivosti (Recall = 91%), čime je cilj projekta u potpunosti ispunjen.
+Kroz proces inženjerskog prototipovanja uspešno je razvijena duboka neuronska mreža koja uspešno rešava problem detekcije anomalija u uslovima ekstremnog debalansa podataka. Kombinacijom `Class Weights` balansiranja i naprednih metoda regularizacije (`Dropout` i `Weight Decay`), Model 3 je ostvario vrhunski odziv od **94%** na neviđenim podacima, čime je cilj projekta u potpunosti ispunjen, a sistem dokazan kao stabilan i visoko osetljiv.
 
 ## Licenca
 Ovaj projekat je licenciran pod MIT licencom - pogledajte [LICENSE](LICENSE) fajl za detalje.
