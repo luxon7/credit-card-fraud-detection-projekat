@@ -34,11 +34,15 @@ Kako bi se ublažila nuspojava težinskog modela (preveliki broj lažnih uzbuna 
 * **L2 regularizacija** uvedena direktno u Adam optimizator preko parametra `weight_decay=1e-4` za stabilizaciju težina.
 Model je treniran kroz 10 epoha radi potpune konvergencije.
 
-## 5. Analiza krive greške (Loss) i praćenje treninga
-Za razliku od bazičnih pristupa, tokom treninga je snimana istorija funkcije greške (`loss`) kroz epohe za sva tri modela, što je vizuelizovano na zajedničkom grafikonu u radnom okruženju. 
-* Model 1 je veštački držao nizak loss jer je ignorisao prevare.
-* Model 2 je uveo nagli pad greške kroz 5 epoha što pokazuje brzo učenje nakon uvođenja težina.
-* Model 3 (Finalni) je zahvaljujući Dropout-u i Weight Decay-u pokazao najstabilniji, ravnomeran eksponencijalni pad funkcije greške kroz svih 10 epoha, što je jasan dokaz da model uspešno generalizuje bez znakova overfitting-a.
+## 5. Analiza osetljivosti i hiperparametarska optimizacija
+
+U ovom projektu, hiperparametarska optimizacija i analiza osetljivosti modela sprovedene su kroz kontrolisani eksperiment sa tri različite konfiguracije mreže. Cilj je bio utvrditi kako promena ključnih hiperparametara utiče na stabilnost učenja i krajnje metrike.
+
+### Hiperparametarska optimizacija
+Praćene su i optimizovane sledeće komponente:
+1. **Strategija balansiranja klasa (`class_weight`):** Testiran je model bez balansiranja naspram modela sa otežanom funkcijom gubitka u odnosu **289.14 : 1** u korist klase prevara.
+2. **Regularizacioni mehanizmi:** Upoređen je uticaj uvođenja **Dropout** slojeva (stopa 0.2) i L2 regularizacije (**Weight Decay** stope $1e-4$) unutar Adam optimizatora na suzbijanje informacionog šuma.
+3. **Dužina treninga (Epohe):** Analiziran je napredak kroz promenu sa 5 epoha (brzi prototip) na 10 epoha (potpuna konvergencija).
 
 ## 6. Rezultati evaluacije
 Nakon završnog testiranja na test setu koji sadrži 56,962 transakcije (od čega 98 stvarnih prevara), dobijeni su sledeći uporedni rezultati:
