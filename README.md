@@ -18,7 +18,7 @@ Svi modeli u ovom projektu razvijeni su u **Keras/TensorFlow** okruženju kao se
 * **Skriveni sloj 2:** 16 neurona, `ReLU` nelinearna aktivaciona funkcija.
 * **Izlazni sloj:** 1 neuron, `Sigmoid` aktivaciona funkcija (sabija izlaz u opseg [0, 1] što omogućava interpretaciju rezultata kao verovatnoće prevare).
 
-## 4. Tok istraživanja i trening (Eksperimentalne konfiguracije)
+## 4. Tok istraživanja i trening
 
 U cilju pronalaska najboljeg modela, realizovane su tri različite konfiguracije:
 
