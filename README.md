@@ -49,7 +49,7 @@ Nakon završnog testiranja na test setu koji sadrži 56,962 transakcije (od čeg
 
 ### Model 1 (Baseline)
 * **Ukupna tačnost (Accuracy):** 1.00 (99.9%)
-* **Recall (Odziv):** 0.71 (Model je promašio čak 24% stvarnih prevara)
+* **Recall (Odziv):** 0.71 (Model je promašio čak 26% stvarnih prevara)
 * **Precision (Preciznost):** 0.82
 
 ### Model 2 (Težinski)
