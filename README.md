@@ -69,7 +69,7 @@ Nakon završnog testiranja na test setu koji sadrži 56,962 transakcije (od čeg
 * Prevara, a model ih uspešno ulovio (True Positives): **89**
 
 ## 7. Diskusija
-Eksperimenti jasno oslikavaju fundamentalni kompromis (*Precision-Recall Trade-off*) u dubokom učenju. Uvođenjem težinskih koeficijenata u Modelu 2 i 3 svesno smo žrtvovali preciznost (pad na 6%) kako bismo maksimalno podigli odziv (skok na 94%). Sa poslovnog aspekta, trošak privremenog blokiranja kartice i slanja SMS verifikacije za 1,562 regularne transakcije je zanemarljiv u poređenju sa katastrofalnim finansijskim i pravnim gubicima koje bi banka pretrpela da je propustila 92 prevare koje je naš finalni model uspešno locirao.
+Eksperimenti jasno oslikavaju fundamentalni kompromis (*Precision-Recall Trade-off*) u dubokom učenju. Uvođenjem težinskih koeficijenata u Modelu 2 i 3 svesno smo žrtvovali preciznost (pad na 7%) kako bismo maksimalno podigli odziv (skok na 94%). Sa poslovnog aspekta, trošak privremenog blokiranja kartice i slanja SMS verifikacije za 1,062 regularne transakcije je zanemarljiv u poređenju sa katastrofalnim finansijskim i pravnim gubicima koje bi banka pretrpela da je propustila 89 prevare koje je naš finalni model uspešno locirao.
 
 ## 8. Zaključak
 Kroz proces inženjerskog prototipovanja uspešno je razvijena duboka neuronska mreža koja uspešno rešava problem detekcije anomalija u uslovima ekstremnog debalansa podataka. Kombinacijom `Class Weights` balansiranja i naprednih metoda regularizacije (`Dropout` i `Weight Decay`), Model 3 je ostvario vrhunski odziv od **94%** na neviđenim podacima, čime je cilj projekta u potpunosti ispunjen, a sistem dokazan kao stabilan i visoko osetljiv.
