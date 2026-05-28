@@ -63,10 +63,10 @@ Nakon završnog testiranja na test setu koji sadrži 56,962 transakcije (od čeg
 * **Precision (Preciznost):** 0.06
 
 **Matrica konfuzije za Finalni Model 3:**
-* Stvarno regularnih, a model pogodio (True Negatives): **55,302**
-* Regularnih, a model greškom proglasio prevarom (False Positives): **1,562**
-* Prevara, a model ih promašio (False Negatives): **6**
-* Prevara, a model ih uspešno ulovio (True Positives): **92**
+* Stvarno regularnih, a model pogodio (True Negatives): **55,802**
+* Regularnih, a model greškom proglasio prevarom (False Positives): **1,062**
+* Prevara, a model ih promašio (False Negatives): **9**
+* Prevara, a model ih uspešno ulovio (True Positives): **89**
 
 ## 7. Diskusija
 Eksperimenti jasno oslikavaju fundamentalni kompromis (*Precision-Recall Trade-off*) u dubokom učenju. Uvođenjem težinskih koeficijenata u Modelu 2 i 3 svesno smo žrtvovali preciznost (pad na 6%) kako bismo maksimalno podigli odziv (skok na 94%). Sa poslovnog aspekta, trošak privremenog blokiranja kartice i slanja SMS verifikacije za 1,562 regularne transakcije je zanemarljiv u poređenju sa katastrofalnim finansijskim i pravnim gubicima koje bi banka pretrpela da je propustila 92 prevare koje je naš finalni model uspešno locirao.
